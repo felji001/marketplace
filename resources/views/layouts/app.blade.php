@@ -86,6 +86,13 @@
             border-color: #128c7e !important;
         }
 
+        /* Additional Button Sizes */
+        .btn-xs {
+            padding: 0.25rem 0.5rem;
+            font-size: 0.75rem;
+            border-radius: var(--radius-sm);
+        }
+
         .fade-in {
             animation: fadeIn 0.5s ease-in-out;
         }
