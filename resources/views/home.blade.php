@@ -44,20 +44,9 @@
                         </div>
                         <div class="col-lg-4 col-md-5 text-md-end">
                             <div class="user-profile-section fade-in-up" style="animation-delay: 0.6s;">
-                                <!-- User Avatar -->
-                                <div class="user-avatar mb-3">
-                                    <i class="bi bi-person-circle display-2 text-white"></i>
-                                </div>
 
-                                <!-- User Roles -->
-                                <div class="user-roles mb-3">
-                                    @foreach(Auth::user()->roles as $role)
-                                        <span class="badge bg-white text-primary fs-6 me-2 mb-2 px-3 py-2 rounded-pill shadow-sm">
-                                            <i class="bi bi-person-badge me-1"></i>
-                                            {{ ucfirst($role->name) }}
-                                        </span>
-                                    @endforeach
-                                </div>
+
+
 
                                 <!-- Member Since & Current Date -->
                                 <div class="user-stats">
@@ -357,7 +346,7 @@
                     <p class="card-text text-dark opacity-80 mb-4">Explore all available products and categories</p>
 
                     <!-- Marketplace Stats -->
-                    <div class="quick-stat bg-white bg-opacity-50 rounded-3 p-3 mb-4">
+                    <div class="quick-stat rounded-3 p-3 mb-4">
                         <div class="row text-center">
                             <div class="col-6">
                                 <div class="stat-number text-dark fw-bold fs-5">{{ \App\Models\Product::count() }}</div>

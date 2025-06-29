@@ -23,11 +23,11 @@
                                     Manage your product listings and track their performance
                                 </p>
                                 <div class="stats-row d-flex flex-wrap gap-3 fade-in-up" style="animation-delay: 0.4s;">
-                                    <div class="stat-badge bg-white bg-opacity-20 rounded-pill px-4 py-2">
+                                    <div class="stat-badge rounded-pill px-4 py-2">
                                         <i class="bi bi-box text-warning me-2"></i>
                                         <span class="text-white">{{ $products->total() }} Total Products</span>
                                     </div>
-                                    <div class="stat-badge bg-white bg-opacity-20 rounded-pill px-4 py-2">
+                                    <div class="stat-badge rounded-pill px-4 py-2">
                                         <i class="bi bi-check-circle text-success me-2"></i>
                                         <span class="text-white">{{ $products->where('stock', '>', 0)->count() }} In Stock</span>
                                     </div>

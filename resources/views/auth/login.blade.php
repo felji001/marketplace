@@ -17,9 +17,8 @@
 
             <div class="text-center text-white position-relative">
                 <div class="brand-showcase mb-4">
-                    <div class="brand-icon-large bg-white bg-opacity-20 rounded-circle d-inline-flex align-items-center justify-content-center mb-4"
-                         style="width: 120px; height: 120px;">
-                        <i class="bi bi-shop-window display-3 text-white"></i>
+                    <div class="brand-icon-large d-inline-flex align-items-center justify-content-center mb-4">
+                        <i class="bi bi-shop-window display-1 text-white"></i>
                     </div>
                     <h1 class="display-4 fw-bold mb-3">{{ config('app.name', 'Marketplace') }}</h1>
                     <p class="lead opacity-90 mb-4">Quality products marketplace</p>

@@ -945,6 +945,37 @@
             backdrop-filter: blur(10px);
         }
 
+        /* Fix dropdown positioning for user dropdown - center it properly */
+        .modern-user-dropdown + .dropdown-menu.dropdown-menu-end {
+            transform: translateX(-50%) !important;
+            left: 50% !important;
+            right: auto !important;
+            margin-left: 0 !important;
+        }
+
+        /* Ensure consistent positioning on all states */
+        .nav-item.dropdown .dropdown-menu.dropdown-menu-end.show {
+            transform: translateX(-50%) !important;
+            left: 50% !important;
+            right: auto !important;
+            margin-left: 0 !important;
+        }
+
+        /* Override Bootstrap's default positioning for user dropdown */
+        .nav-item.dropdown .modern-user-dropdown + .dropdown-menu[data-popper-placement] {
+            transform: translateX(-50%) !important;
+            left: 50% !important;
+            right: auto !important;
+            margin-left: 0 !important;
+        }
+
+        /* Debug: Ensure dropdown is visible and properly positioned */
+        .nav-item.dropdown .modern-user-dropdown + .dropdown-menu.show {
+            display: block !important;
+            opacity: 1 !important;
+            visibility: visible !important;
+        }
+
         .modern-dropdown-item {
             padding: 0.75rem 1.5rem;
             transition: all 0.3s ease;
@@ -1485,18 +1516,78 @@
                     const dropdownMenu = dropdown.querySelector('.dropdown-menu');
 
                     let hoverTimeout;
+                    let bootstrapDropdown;
+
+                    // Initialize Bootstrap dropdown instance with custom positioning
+                    if (dropdownToggle) {
+                        bootstrapDropdown = new bootstrap.Dropdown(dropdownToggle, {
+                            popperConfig: {
+                                placement: 'bottom',
+                                modifiers: [
+                                    {
+                                        name: 'offset',
+                                        options: {
+                                            offset: [0, 8]
+                                        }
+                                    },
+                                    {
+                                        name: 'preventOverflow',
+                                        options: {
+                                            boundary: 'viewport'
+                                        }
+                                    }
+                                ]
+                            }
+                        });
+                    }
+
+                    // Function to ensure proper positioning
+                    const ensureProperPositioning = () => {
+                        if (dropdownMenu && dropdownMenu.classList.contains('dropdown-menu-end') &&
+                            dropdownToggle && dropdownToggle.classList.contains('modern-user-dropdown')) {
+                            // Force center positioning for user dropdown
+                            const applyPositioning = () => {
+                                dropdownMenu.style.setProperty('transform', 'translateX(-50%)', 'important');
+                                dropdownMenu.style.setProperty('left', '50%', 'important');
+                                dropdownMenu.style.setProperty('right', 'auto', 'important');
+                                dropdownMenu.style.setProperty('margin-left', '0', 'important');
+                            };
+
+                            // Apply immediately and after a short delay to override Popper.js
+                            applyPositioning();
+                            setTimeout(applyPositioning, 10);
+                            setTimeout(applyPositioning, 50);
+                        }
+                    };
 
                     dropdown.addEventListener('mouseenter', function() {
                         clearTimeout(hoverTimeout);
-                        dropdownToggle.classList.add('show');
-                        dropdownMenu.classList.add('show');
+                        if (bootstrapDropdown && !dropdownMenu.classList.contains('show')) {
+                            bootstrapDropdown.show();
+                            ensureProperPositioning();
+                        }
                     });
 
                     dropdown.addEventListener('mouseleave', function() {
                         hoverTimeout = setTimeout(() => {
-                            dropdownToggle.classList.remove('show');
-                            dropdownMenu.classList.remove('show');
+                            if (bootstrapDropdown && dropdownMenu.classList.contains('show')) {
+                                bootstrapDropdown.hide();
+                            }
                         }, 300);
+                    });
+
+                    // Also ensure positioning on click
+                    dropdownToggle.addEventListener('click', function() {
+                        setTimeout(ensureProperPositioning, 10);
+                    });
+
+                    // Listen for Bootstrap dropdown events
+                    dropdown.addEventListener('shown.bs.dropdown', function() {
+                        ensureProperPositioning();
+                    });
+
+                    dropdown.addEventListener('show.bs.dropdown', function() {
+                        setTimeout(ensureProperPositioning, 1);
                     });
                 });
             }
@@ -1584,12 +1675,16 @@
             // Keyboard navigation support
             document.addEventListener('keydown', function(e) {
                 if (e.key === 'Escape') {
-                    // Close all open dropdowns
+                    // Close all open dropdowns using Bootstrap API
                     const openDropdowns = document.querySelectorAll('.dropdown-menu.show');
                     openDropdowns.forEach(dropdown => {
-                        dropdown.classList.remove('show');
                         const toggle = dropdown.previousElementSibling;
-                        if (toggle) toggle.classList.remove('show');
+                        if (toggle && toggle.classList.contains('dropdown-toggle')) {
+                            const bootstrapDropdown = bootstrap.Dropdown.getInstance(toggle);
+                            if (bootstrapDropdown) {
+                                bootstrapDropdown.hide();
+                            }
+                        }
                     });
                 }
             });
