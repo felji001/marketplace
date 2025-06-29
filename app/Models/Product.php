@@ -16,11 +16,14 @@ class Product extends Model
         'stock',
         'user_id',
         'category_id',
+        'image',
+        'images',
     ];
 
     protected $casts = [
         'price' => 'decimal:2',
         'stock' => 'integer',
+        'images' => 'array',
     ];
 
     /**
@@ -130,5 +133,80 @@ class Product extends Model
     {
         return !empty($this->user->whatsapp_number) &&
                \App\Helpers\WhatsAppHelper::isValidWhatsAppNumber($this->user->whatsapp_number);
+    }
+
+    /**
+     * Get the primary image URL.
+     */
+    public function getImageUrlAttribute()
+    {
+        if ($this->image) {
+            return asset('storage/products/' . $this->image);
+        }
+        return null;
+    }
+
+    /**
+     * Get all image URLs.
+     */
+    public function getImageUrlsAttribute()
+    {
+        $urls = [];
+
+        // Add primary image first
+        if ($this->image) {
+            $urls[] = $this->image_url;
+        }
+
+        // Add additional images
+        if ($this->images && is_array($this->images)) {
+            foreach ($this->images as $image) {
+                $urls[] = asset('storage/products/' . $image);
+            }
+        }
+
+        return $urls;
+    }
+
+    /**
+     * Check if product has any images.
+     */
+    public function hasImages()
+    {
+        return !empty($this->image) || (!empty($this->images) && count($this->images) > 0);
+    }
+
+    /**
+     * Get the first available image URL or a placeholder.
+     */
+    public function getDisplayImageAttribute()
+    {
+        if ($this->image) {
+            return $this->image_url;
+        }
+
+        if ($this->images && is_array($this->images) && count($this->images) > 0) {
+            return asset('storage/products/' . $this->images[0]);
+        }
+
+        return asset('images/product-placeholder.svg');
+    }
+
+    /**
+     * Get image count for display.
+     */
+    public function getImageCountAttribute()
+    {
+        $count = 0;
+
+        if ($this->image) {
+            $count++;
+        }
+
+        if ($this->images && is_array($this->images)) {
+            $count += count($this->images);
+        }
+
+        return $count;
     }
 }

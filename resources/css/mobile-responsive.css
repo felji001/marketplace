@@ -1,0 +1,447 @@
+/* ===== MOBILE RESPONSIVE ENHANCEMENTS ===== */
+
+/* Mobile-First Approach with Progressive Enhancement */
+
+/* ===== TOUCH-FRIENDLY INTERACTIONS ===== */
+@media (hover: none) and (pointer: coarse) {
+    /* Touch device optimizations */
+    .btn, .nav-link, .dropdown-item, .card {
+        min-height: 44px; /* Apple's recommended touch target size */
+        min-width: 44px;
+    }
+    
+    .btn {
+        padding: 0.75rem 1.5rem;
+        font-size: 1rem;
+    }
+    
+    /* Remove hover effects on touch devices */
+    .hover-lift:hover,
+    .hover-scale:hover,
+    .hover-rotate:hover {
+        transform: none;
+        box-shadow: none;
+    }
+    
+    /* Enhanced tap feedback */
+    .btn:active,
+    .nav-link:active,
+    .card:active {
+        transform: scale(0.98);
+        transition: transform 0.1s ease;
+    }
+}
+
+/* ===== MOBILE BREAKPOINTS ===== */
+
+/* Extra Small Devices (phones, 576px and down) */
+@media (max-width: 575.98px) {
+    /* Container adjustments */
+    .container-fluid {
+        padding-left: 1rem;
+        padding-right: 1rem;
+    }
+    
+    /* Typography scaling */
+    .display-1 { font-size: 2.5rem; }
+    .display-2 { font-size: 2rem; }
+    .display-3 { font-size: 1.75rem; }
+    .display-4 { font-size: 1.5rem; }
+    .display-5 { font-size: 1.25rem; }
+    .display-6 { font-size: 1.1rem; }
+    
+    h1 { font-size: 1.75rem; }
+    h2 { font-size: 1.5rem; }
+    h3 { font-size: 1.25rem; }
+    
+    /* Card adjustments */
+    .card {
+        margin-bottom: 1rem;
+    }
+    
+    .card-body {
+        padding: 1rem;
+    }
+    
+    /* Button adjustments */
+    .btn-lg {
+        padding: 0.75rem 1.5rem;
+        font-size: 1rem;
+    }
+    
+    .btn-group-vertical .btn {
+        margin-bottom: 0.5rem;
+    }
+    
+    /* Form adjustments */
+    .form-control {
+        font-size: 16px; /* Prevents zoom on iOS */
+        padding: 0.75rem;
+    }
+    
+    .form-floating > .form-control {
+        padding-top: 1.625rem;
+        padding-bottom: 0.625rem;
+    }
+    
+    /* Navigation adjustments */
+    .navbar-brand {
+        font-size: 1.1rem;
+    }
+    
+    .navbar-nav .nav-link {
+        padding: 0.75rem 1rem;
+        text-align: center;
+    }
+    
+    /* Modal adjustments */
+    .modal-dialog {
+        margin: 0.5rem;
+    }
+    
+    .modal-content {
+        border-radius: 1rem;
+    }
+    
+    /* Table responsiveness */
+    .table-responsive {
+        border: none;
+    }
+    
+    .table {
+        font-size: 0.875rem;
+    }
+    
+    .table th,
+    .table td {
+        padding: 0.5rem;
+    }
+}
+
+/* Small Devices (landscape phones, 576px and up) */
+@media (min-width: 576px) and (max-width: 767.98px) {
+    .container {
+        max-width: 540px;
+    }
+    
+    /* Grid adjustments */
+    .col-sm-auto {
+        flex: 0 0 auto;
+        width: auto;
+    }
+    
+    /* Card grid improvements */
+    .card-columns {
+        column-count: 2;
+    }
+}
+
+/* Medium Devices (tablets, 768px and up) */
+@media (min-width: 768px) and (max-width: 991.98px) {
+    .container {
+        max-width: 720px;
+    }
+    
+    /* Navigation improvements */
+    .navbar-expand-md .navbar-nav {
+        flex-direction: row;
+    }
+    
+    .navbar-expand-md .navbar-nav .nav-link {
+        padding-right: 0.75rem;
+        padding-left: 0.75rem;
+    }
+    
+    /* Card grid improvements */
+    .card-columns {
+        column-count: 3;
+    }
+    
+    /* Form layout improvements */
+    .form-row .col-md-6 {
+        margin-bottom: 1rem;
+    }
+}
+
+/* ===== MOBILE NAVIGATION ENHANCEMENTS ===== */
+@media (max-width: 991.98px) {
+    /* Enhanced mobile menu */
+    .navbar-collapse {
+        background: white;
+        border-radius: 1rem;
+        margin-top: 1rem;
+        padding: 1.5rem;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+        border: 1px solid rgba(0,0,0,0.05);
+    }
+    
+    .navbar-nav {
+        gap: 0.5rem;
+    }
+    
+    .nav-item {
+        width: 100%;
+    }
+    
+    .nav-link {
+        border-radius: 0.5rem;
+        padding: 1rem;
+        margin: 0.25rem 0;
+        background: rgba(0,0,0,0.02);
+        border: 1px solid transparent;
+        transition: all 0.3s ease;
+    }
+    
+    .nav-link:hover,
+    .nav-link.active {
+        background: var(--primary-color);
+        color: white !important;
+        transform: translateX(5px);
+    }
+    
+    .dropdown-menu {
+        position: static !important;
+        transform: none !important;
+        box-shadow: none;
+        border: none;
+        background: rgba(0,0,0,0.02);
+        margin: 0.5rem 0;
+        border-radius: 0.5rem;
+    }
+    
+    .dropdown-item {
+        padding: 0.75rem 1rem;
+        border-radius: 0.25rem;
+        margin: 0.25rem;
+    }
+}
+
+/* ===== MOBILE FORM ENHANCEMENTS ===== */
+@media (max-width: 767.98px) {
+    /* Stack form elements vertically */
+    .form-row {
+        flex-direction: column;
+    }
+    
+    .form-row .col {
+        margin-bottom: 1rem;
+    }
+    
+    /* Larger touch targets for form controls */
+    .form-control,
+    .form-select,
+    .btn {
+        min-height: 48px;
+        font-size: 16px; /* Prevents zoom on iOS */
+    }
+    
+    /* Improved checkbox and radio styling */
+    .form-check {
+        margin-bottom: 1rem;
+    }
+    
+    .form-check-input {
+        width: 1.5em;
+        height: 1.5em;
+    }
+    
+    .form-check-label {
+        padding-left: 0.5rem;
+        font-size: 1rem;
+    }
+    
+    /* Better spacing for form groups */
+    .mb-3 {
+        margin-bottom: 1.5rem !important;
+    }
+}
+
+/* ===== MOBILE CARD LAYOUTS ===== */
+@media (max-width: 767.98px) {
+    /* Single column card layout */
+    .card-deck,
+    .card-columns {
+        column-count: 1;
+    }
+    
+    .card {
+        margin-bottom: 1.5rem;
+    }
+    
+    /* Horizontal cards on mobile */
+    .card-horizontal {
+        flex-direction: column;
+    }
+    
+    .card-horizontal .card-img-top {
+        width: 100%;
+        height: 200px;
+        object-fit: cover;
+    }
+    
+    /* Product cards mobile optimization */
+    .product-card {
+        margin-bottom: 1.5rem;
+    }
+    
+    .product-card .card-body {
+        padding: 1.25rem;
+    }
+    
+    .product-card .btn {
+        width: 100%;
+        margin-bottom: 0.5rem;
+    }
+}
+
+/* ===== MOBILE TABLE ENHANCEMENTS ===== */
+@media (max-width: 767.98px) {
+    /* Responsive table approach */
+    .table-mobile-responsive {
+        border: none;
+    }
+    
+    .table-mobile-responsive thead {
+        display: none;
+    }
+    
+    .table-mobile-responsive tbody,
+    .table-mobile-responsive tr,
+    .table-mobile-responsive td {
+        display: block;
+        width: 100%;
+    }
+    
+    .table-mobile-responsive tr {
+        border: 1px solid #dee2e6;
+        border-radius: 0.5rem;
+        margin-bottom: 1rem;
+        padding: 1rem;
+        background: white;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    }
+    
+    .table-mobile-responsive td {
+        border: none;
+        padding: 0.5rem 0;
+        position: relative;
+        padding-left: 40%;
+    }
+    
+    .table-mobile-responsive td:before {
+        content: attr(data-label);
+        position: absolute;
+        left: 0;
+        width: 35%;
+        font-weight: bold;
+        color: #6c757d;
+        font-size: 0.875rem;
+    }
+}
+
+/* ===== MOBILE MODAL ENHANCEMENTS ===== */
+@media (max-width: 767.98px) {
+    .modal-dialog {
+        margin: 1rem;
+        max-width: calc(100% - 2rem);
+    }
+    
+    .modal-content {
+        border-radius: 1rem;
+        border: none;
+        box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+    }
+    
+    .modal-header {
+        padding: 1.5rem;
+        border-bottom: 1px solid rgba(0,0,0,0.05);
+    }
+    
+    .modal-body {
+        padding: 1.5rem;
+    }
+    
+    .modal-footer {
+        padding: 1.5rem;
+        border-top: 1px solid rgba(0,0,0,0.05);
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+    
+    .modal-footer .btn {
+        width: 100%;
+    }
+}
+
+/* ===== MOBILE UTILITY CLASSES ===== */
+@media (max-width: 767.98px) {
+    .mobile-center { text-align: center !important; }
+    .mobile-left { text-align: left !important; }
+    .mobile-right { text-align: right !important; }
+    
+    .mobile-block { display: block !important; }
+    .mobile-inline { display: inline !important; }
+    .mobile-none { display: none !important; }
+    
+    .mobile-w-100 { width: 100% !important; }
+    .mobile-h-auto { height: auto !important; }
+    
+    .mobile-p-2 { padding: 0.5rem !important; }
+    .mobile-p-3 { padding: 1rem !important; }
+    .mobile-m-2 { margin: 0.5rem !important; }
+    .mobile-m-3 { margin: 1rem !important; }
+    
+    .mobile-fs-sm { font-size: 0.875rem !important; }
+    .mobile-fs-base { font-size: 1rem !important; }
+    .mobile-fs-lg { font-size: 1.125rem !important; }
+}
+
+/* ===== LANDSCAPE ORIENTATION ADJUSTMENTS ===== */
+@media (max-height: 500px) and (orientation: landscape) {
+    .navbar {
+        padding: 0.25rem 0;
+    }
+    
+    .navbar-brand {
+        font-size: 1rem;
+    }
+    
+    .modal-dialog {
+        margin: 0.5rem;
+    }
+    
+    .welcome-header,
+    .page-header-modern {
+        min-height: 120px !important;
+        padding: 1rem !important;
+    }
+}
+
+/* ===== ACCESSIBILITY ENHANCEMENTS ===== */
+@media (prefers-reduced-motion: reduce) {
+    * {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+    .btn {
+        border: 2px solid currentColor;
+    }
+    
+    .card {
+        border: 2px solid #dee2e6;
+    }
+    
+    .nav-link {
+        border: 1px solid transparent;
+    }
+    
+    .nav-link:hover,
+    .nav-link.active {
+        border-color: currentColor;
+    }
+}

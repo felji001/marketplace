@@ -8,12 +8,31 @@
             <div class="page-header bg-gradient p-4 rounded-3 text-white" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
                 <div class="row align-items-center">
                     <div class="col-md-8">
+                        <nav aria-label="breadcrumb" class="mb-2">
+                            <ol class="breadcrumb text-white-50">
+                                <li class="breadcrumb-item">
+                                    <a href="{{ route('catalog.index') }}" class="text-white text-decoration-none">
+                                        <i class="bi bi-house-door me-1"></i>Marketplace
+                                    </a>
+                                </li>
+                                @if($category->parent)
+                                    <li class="breadcrumb-item">
+                                        <a href="{{ route('catalog.category', $category->parent) }}" class="text-white text-decoration-none">
+                                            {{ $category->parent->name }}
+                                        </a>
+                                    </li>
+                                @endif
+                                <li class="breadcrumb-item active text-white" aria-current="page">
+                                    {{ $category->name }}
+                                </li>
+                            </ol>
+                        </nav>
                         <h1 class="display-6 fw-bold mb-2 text-white">
-                            <i class="bi bi-shop-window me-2"></i>
-                            Product Marketplace
+                            <i class="bi bi-folder me-2"></i>
+                            {{ $category->name }}
                         </h1>
                         <p class="lead mb-0 opacity-90">
-                            Discover amazing products from our sellers
+                            Explore products in {{ $category->name }} category
                         </p>
                     </div>
                     <div class="col-md-4 text-md-end">
@@ -22,10 +41,12 @@
                                 <i class="bi bi-box me-1"></i>
                                 {{ $products->total() }} Products
                             </span>
-                            <span class="badge bg-light text-dark fs-6">
-                                <i class="bi bi-tags me-1"></i>
-                                {{ $categories->count() }} Categories
-                            </span>
+                            @if($category->children->count() > 0)
+                                <span class="badge bg-light text-dark fs-6">
+                                    <i class="bi bi-folder me-1"></i>
+                                    {{ $category->children->count() }} Subcategories
+                                </span>
+                            @endif
                         </div>
                     </div>
                 </div>
@@ -37,21 +58,64 @@
         <!-- Enhanced Categories Sidebar -->
         <div class="col-lg-3 col-md-4 mb-4">
             <div class="category-sidebar sticky-top" style="top: 20px;">
+                <!-- Back to All Categories -->
+                <div class="mb-4">
+                    <a href="{{ route('catalog.index') }}" class="btn btn-outline-primary w-100">
+                        <i class="bi bi-arrow-left me-2"></i>All Categories
+                    </a>
+                </div>
+
+                <!-- Current Category Info -->
+                <div class="current-category-info mb-4 p-3 bg-light rounded">
+                    <h6 class="fw-bold text-primary mb-2">
+                        <i class="bi bi-folder-open me-2"></i>Current Category
+                    </h6>
+                    <p class="mb-1 fw-semibold">{{ $category->name }}</p>
+                    @if($category->parent)
+                        <small class="text-muted">
+                            Parent: {{ $category->parent->name }}
+                        </small>
+                    @endif
+                </div>
+
+                <!-- Subcategories if available -->
+                @if($category->children->count() > 0)
+                    <div class="subcategories-section mb-4">
+                        <h6 class="fw-semibold mb-3">
+                            <i class="bi bi-folder me-2"></i>Subcategories
+                        </h6>
+                        @foreach($category->children as $child)
+                            <div class="subcategory-item mb-2">
+                                <a href="{{ route('catalog.category', $child) }}"
+                                   class="subcategory-link enhanced-subcategory-link">
+                                    <div class="subcategory-content">
+                                        <div class="subcategory-info">
+                                            <i class="bi bi-folder subcategory-icon"></i>
+                                            <span class="subcategory-name">{{ $child->name }}</span>
+                                        </div>
+                                        <span class="subcategory-count">{{ $child->products_count ?? 0 }}</span>
+                                    </div>
+                                </a>
+                            </div>
+                        @endforeach
+                    </div>
+                @endif
+
                 <!-- Enhanced Search Section -->
                 <div class="search-section mb-4">
                     <div class="search-header d-flex align-items-center mb-3">
                         <div class="search-icon me-2">
                             <i class="bi bi-search text-primary"></i>
                         </div>
-                        <h6 class="sidebar-title mb-0 fw-semibold">Search Products</h6>
+                        <h6 class="sidebar-title mb-0 fw-semibold">Search in {{ $category->name }}</h6>
                     </div>
 
-                    <form method="GET" action="{{ route('catalog.index') }}" class="enhanced-search-form">
+                    <form method="GET" action="{{ route('catalog.category', $category) }}" class="enhanced-search-form">
                         <div class="search-input-wrapper position-relative mb-3">
                             <input type="text"
                                    name="search"
                                    class="form-control search-input"
-                                   placeholder="What are you looking for?"
+                                   placeholder="Search in {{ $category->name }}..."
                                    value="{{ request('search') }}"
                                    id="searchInput"
                                    autocomplete="off">
@@ -67,8 +131,8 @@
                             </div>
                         </div>
 
-                        @if(request('category'))
-                            <input type="hidden" name="category" value="{{ request('category') }}">
+                        @if(request('sort'))
+                            <input type="hidden" name="sort" value="{{ request('sort') }}">
                         @endif
 
                         @if(request('search'))
@@ -78,7 +142,7 @@
                                         <i class="bi bi-info-circle me-1"></i>
                                         Searching for: <strong>"{{ request('search') }}"</strong>
                                     </small>
-                                    <a href="{{ route('catalog.index', request()->except('search')) }}"
+                                    <a href="{{ route('catalog.category', $category) }}"
                                        class="btn btn-outline-secondary btn-xs">
                                         <i class="bi bi-arrow-clockwise me-1"></i>Reset
                                     </a>
@@ -86,32 +150,21 @@
                             </div>
                         @endif
                     </form>
-
-                    <!-- Quick Search Suggestions -->
-                    <div class="search-suggestions mt-3">
-                        <small class="text-muted d-block mb-2">Popular searches:</small>
-                        <div class="d-flex flex-wrap gap-1">
-                            <a href="{{ route('catalog.index', ['search' => 'electronics']) }}" class="badge bg-light text-dark text-decoration-none">Electronics</a>
-                            <a href="{{ route('catalog.index', ['search' => 'clothing']) }}" class="badge bg-light text-dark text-decoration-none">Clothing</a>
-                            <a href="{{ route('catalog.index', ['search' => 'books']) }}" class="badge bg-light text-dark text-decoration-none">Books</a>
-                            <a href="{{ route('catalog.index', ['search' => 'home']) }}" class="badge bg-light text-dark text-decoration-none">Home</a>
-                        </div>
-                    </div>
                 </div>
 
-                <!-- Enhanced Categories Section -->
+                <!-- All Categories Navigation -->
                 <div class="categories-section">
                     <div class="categories-header d-flex align-items-center mb-3">
                         <div class="categories-icon me-2">
                             <i class="bi bi-grid-3x2-gap text-primary"></i>
                         </div>
-                        <h6 class="sidebar-title mb-0 fw-semibold">Browse Categories</h6>
+                        <h6 class="sidebar-title mb-0 fw-semibold">All Categories</h6>
                     </div>
 
                     <!-- All Products Link -->
                     <div class="category-item mb-2">
                         <a href="{{ route('catalog.index') }}"
-                           class="category-link enhanced-category-link {{ !request('category') ? 'active' : '' }}">
+                           class="category-link enhanced-category-link">
                             <div class="category-content">
                                 <div class="category-info">
                                     <i class="bi bi-house-door category-icon"></i>
@@ -123,25 +176,25 @@
                     </div>
 
                     <!-- Enhanced Category List -->
-                    @foreach($categories as $category)
+                    @foreach($categories as $cat)
                         <div class="category-item mb-2">
-                            <a href="{{ route('catalog.index', ['category' => $category->id]) }}"
-                               class="category-link enhanced-category-link {{ request('category') == $category->id ? 'active' : '' }}">
+                            <a href="{{ route('catalog.category', $cat) }}"
+                               class="category-link enhanced-category-link {{ $cat->id == $category->id || ($category->parent && $cat->id == $category->parent->id) ? 'active' : '' }}">
                                 <div class="category-content">
                                     <div class="category-info">
                                         <i class="bi bi-folder category-icon"></i>
-                                        <span class="category-name">{{ $category->name }}</span>
+                                        <span class="category-name">{{ $cat->name }}</span>
                                     </div>
-                                    <span class="category-count">{{ $category->products_count ?? 0 }}</span>
+                                    <span class="category-count">{{ $cat->products_count ?? 0 }}</span>
                                 </div>
                             </a>
 
-                            @if($category->children->count() > 0)
-                                <div class="subcategories {{ request('category') == $category->id || in_array(request('category'), $category->children->pluck('id')->toArray()) ? 'expanded' : '' }}">
-                                    @foreach($category->children as $child)
+                            @if($cat->children->count() > 0)
+                                <div class="subcategories {{ $cat->id == $category->id || ($category->parent && $cat->id == $category->parent->id) || in_array($category->id, $cat->children->pluck('id')->toArray()) ? 'expanded' : '' }}">
+                                    @foreach($cat->children as $child)
                                         <div class="subcategory-item">
-                                            <a href="{{ route('catalog.index', ['category' => $child->id]) }}"
-                                               class="subcategory-link enhanced-subcategory-link {{ request('category') == $child->id ? 'active' : '' }}">
+                                            <a href="{{ route('catalog.category', $child) }}"
+                                               class="subcategory-link enhanced-subcategory-link {{ $child->id == $category->id ? 'active' : '' }}">
                                                 <div class="subcategory-content">
                                                     <div class="subcategory-info">
                                                         <i class="bi bi-arrow-return-right subcategory-icon"></i>
@@ -169,16 +222,10 @@
                         <h2 class="products-title mb-2">
                             @if(request('search'))
                                 <i class="bi bi-search me-2 text-primary"></i>
-                                Search Results for "<span class="text-primary">{{ request('search') }}</span>"
-                            @elseif(request('category'))
-                                @php
-                                    $selectedCategory = $categories->flatten()->firstWhere('id', request('category'));
-                                @endphp
-                                <i class="bi bi-folder me-2 text-primary"></i>
-                                {{ $selectedCategory ? $selectedCategory->name : 'Products' }}
+                                Search Results in {{ $category->name }}
                             @else
-                                <i class="bi bi-grid-3x3-gap me-2 text-primary"></i>
-                                All Products
+                                <i class="bi bi-folder me-2 text-primary"></i>
+                                {{ $category->name }} Products
                             @endif
                         </h2>
                         <p class="text-muted mb-0">
@@ -443,26 +490,26 @@
                 <!-- Empty State -->
                 <div class="empty-state text-center py-5">
                     <div class="empty-icon mb-4">
-                        <i class="bi bi-search display-1 text-muted"></i>
+                        <i class="bi bi-folder-x display-1 text-muted"></i>
                     </div>
-                    <h4 class="empty-title mb-3">No products found</h4>
+                    <h4 class="empty-title mb-3">No products found in {{ $category->name }}</h4>
                     <p class="empty-description text-muted mb-4">
                         @if(request('search'))
-                            We couldn't find any products matching "<strong>{{ request('search') }}</strong>".
-                            <br>Try adjusting your search terms or browse our categories.
+                            We couldn't find any products matching "<strong>{{ request('search') }}</strong>" in this category.
+                            <br>Try adjusting your search terms or browse other categories.
                         @else
                             There are no products in this category yet.
                             <br>Check back later or browse other categories.
                         @endif
                     </p>
                     <div class="empty-actions">
-                        @if(request('search') || request('category'))
-                            <a href="{{ route('catalog.index') }}" class="btn btn-primary me-2">
-                                <i class="bi bi-arrow-left me-2"></i>View All Products
+                        @if(request('search'))
+                            <a href="{{ route('catalog.category', $category) }}" class="btn btn-primary me-2">
+                                <i class="bi bi-arrow-left me-2"></i>View All in {{ $category->name }}
                             </a>
                         @endif
                         <a href="{{ route('catalog.index') }}" class="btn btn-outline-secondary">
-                            <i class="bi bi-arrow-clockwise me-2"></i>Refresh
+                            <i class="bi bi-grid-3x3-gap me-2"></i>Browse All Products
                         </a>
                     </div>
                 </div>
@@ -527,29 +574,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-    // Enhanced category interactions
-    const categoryLinks = document.querySelectorAll('.enhanced-category-link, .enhanced-subcategory-link');
-    categoryLinks.forEach(link => {
-        link.addEventListener('click', function(e) {
-            // Add loading state with better visual feedback
-            const productsContainer = document.getElementById('productsContainer');
-            if (productsContainer) {
-                productsContainer.style.opacity = '0.6';
-                productsContainer.style.pointerEvents = 'none';
-
-                // Add loading spinner
-                const loadingSpinner = document.createElement('div');
-                loadingSpinner.className = 'loading-overlay';
-                loadingSpinner.innerHTML = '<div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading...</span></div>';
-                productsContainer.appendChild(loadingSpinner);
-            }
-
-            // Add active state to clicked category
-            categoryLinks.forEach(l => l.classList.remove('loading'));
-            this.classList.add('loading');
-        });
-    });
-
     // Sort dropdown enhancements
     const sortDropdown = document.getElementById('sortDropdown');
     if (sortDropdown) {
@@ -561,37 +585,6 @@ document.addEventListener('DOMContentLoaded', function() {
             this.classList.remove('dropdown-open');
         });
     }
-
-    // Pagination link enhancements
-    const paginationLinks = document.querySelectorAll('.pagination-link');
-    paginationLinks.forEach(link => {
-        if (link.href) {
-            link.addEventListener('click', function(e) {
-                // Add loading state to pagination
-                const paginationWrapper = document.querySelector('.modern-pagination-wrapper');
-                if (paginationWrapper) {
-                    paginationWrapper.style.opacity = '0.7';
-                    paginationWrapper.style.pointerEvents = 'none';
-                }
-            });
-        }
-    });
-
-    // Search suggestions interactions
-    const searchSuggestions = document.querySelectorAll('.search-suggestions .badge');
-    searchSuggestions.forEach(suggestion => {
-        suggestion.addEventListener('mouseenter', function() {
-            this.style.transform = 'scale(1.05)';
-            this.style.backgroundColor = '#007bff';
-            this.style.color = 'white';
-        });
-
-        suggestion.addEventListener('mouseleave', function() {
-            this.style.transform = 'scale(1)';
-            this.style.backgroundColor = '';
-            this.style.color = '';
-        });
-    });
 });
 
 // Clear search function

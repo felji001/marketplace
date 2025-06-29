@@ -6,6 +6,7 @@ use App\Models\Product;
 use App\Models\Category;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 
 class ProductController extends Controller
 {
@@ -48,16 +49,42 @@ class ProductController extends Controller
             'price' => 'required|numeric|min:0',
             'stock' => 'required|integer|min:0',
             'category_id' => 'required|exists:categories,id',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'additional_images.*' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
         ]);
 
-        $product = Product::create([
+        $productData = [
             'name' => $request->name,
             'description' => $request->description,
             'price' => $request->price,
             'stock' => $request->stock,
             'category_id' => $request->category_id,
             'user_id' => Auth::id(),
-        ]);
+        ];
+
+        // Handle primary image upload
+        if ($request->hasFile('image')) {
+            $image = $request->file('image');
+            $imageName = time() . '_' . uniqid() . '.' . $image->getClientOriginalExtension();
+            $image->storeAs('public/products', $imageName);
+            $productData['image'] = $imageName;
+        }
+
+        // Handle additional images upload
+        $additionalImages = [];
+        if ($request->hasFile('additional_images')) {
+            foreach ($request->file('additional_images') as $image) {
+                $imageName = time() . '_' . uniqid() . '.' . $image->getClientOriginalExtension();
+                $image->storeAs('public/products', $imageName);
+                $additionalImages[] = $imageName;
+            }
+        }
+
+        if (!empty($additionalImages)) {
+            $productData['images'] = $additionalImages;
+        }
+
+        $product = Product::create($productData);
 
         return redirect()->route('products.index')
             ->with('success', 'Product created successfully.');
@@ -92,15 +119,50 @@ class ProductController extends Controller
             'price' => 'required|numeric|min:0',
             'stock' => 'required|integer|min:0',
             'category_id' => 'required|exists:categories,id',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'additional_images.*' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
         ]);
 
-        $product->update([
+        $productData = [
             'name' => $request->name,
             'description' => $request->description,
             'price' => $request->price,
             'stock' => $request->stock,
             'category_id' => $request->category_id,
-        ]);
+        ];
+
+        // Handle primary image upload
+        if ($request->hasFile('image')) {
+            // Delete old image if exists
+            if ($product->image) {
+                \Storage::delete('public/products/' . $product->image);
+            }
+
+            $image = $request->file('image');
+            $imageName = time() . '_' . uniqid() . '.' . $image->getClientOriginalExtension();
+            $image->storeAs('public/products', $imageName);
+            $productData['image'] = $imageName;
+        }
+
+        // Handle additional images upload
+        if ($request->hasFile('additional_images')) {
+            // Delete old additional images if exists
+            if ($product->images && is_array($product->images)) {
+                foreach ($product->images as $oldImage) {
+                    \Storage::delete('public/products/' . $oldImage);
+                }
+            }
+
+            $additionalImages = [];
+            foreach ($request->file('additional_images') as $image) {
+                $imageName = time() . '_' . uniqid() . '.' . $image->getClientOriginalExtension();
+                $image->storeAs('public/products', $imageName);
+                $additionalImages[] = $imageName;
+            }
+            $productData['images'] = $additionalImages;
+        }
+
+        $product->update($productData);
 
         return redirect()->route('products.index')
             ->with('success', 'Product updated successfully.');
@@ -114,6 +176,17 @@ class ProductController extends Controller
         // Check if product has orders
         if ($product->orderItems()->count() > 0) {
             return back()->withErrors(['error' => 'Cannot delete product with existing orders.']);
+        }
+
+        // Delete product images
+        if ($product->image) {
+            Storage::delete('public/products/' . $product->image);
+        }
+
+        if ($product->images && is_array($product->images)) {
+            foreach ($product->images as $image) {
+                Storage::delete('public/products/' . $image);
+            }
         }
 
         $product->delete();

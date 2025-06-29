@@ -1,6 +1,51 @@
 @extends('layouts.app')
 
 @section('content')
+<style>
+/* Enhanced Product Image Gallery Styles */
+.thumbnail-image {
+    border: 2px solid transparent;
+    transition: all 0.3s ease;
+}
+
+.thumbnail-image:hover {
+    border-color: var(--bs-primary);
+    transform: scale(1.05);
+}
+
+.thumbnail-image.active {
+    border-color: var(--bs-primary);
+    box-shadow: 0 0 0 2px rgba(var(--bs-primary-rgb), 0.25);
+}
+
+.product-image-main img {
+    transition: transform 0.3s ease;
+}
+
+.product-image-main img:hover {
+    transform: scale(1.02);
+}
+
+.image-count-badge {
+    backdrop-filter: blur(10px);
+}
+
+/* Modal image styling */
+#modalImage {
+    max-height: 80vh;
+    object-fit: contain;
+}
+
+/* Enhanced product details */
+.detail-card {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.detail-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+</style>
 <div class="container">
     <!-- Enhanced Breadcrumb -->
     <nav aria-label="breadcrumb" class="mb-4">
@@ -58,15 +103,59 @@
                             </div>
                         </div>
 
-                        <!-- Product Image Section -->
+                        <!-- Enhanced Product Image Section -->
                         <div class="product-image-section mb-4">
-                            <div class="product-image-main bg-light rounded-3 d-flex align-items-center justify-content-center" style="height: 400px;">
-                                <div class="text-center">
-                                    <i class="bi bi-image display-1 text-muted mb-3"></i>
-                                    <p class="text-muted">Product Image</p>
-                                    <small class="text-muted">{{ $product->name }}</small>
+                            @if($product->hasImages())
+                                <div class="product-images-container">
+                                    <!-- Main Image Display -->
+                                    <div class="main-image-container mb-3">
+                                        <div class="product-image-main position-relative rounded-3 overflow-hidden" style="height: 400px;">
+                                            <img id="mainProductImage"
+                                                 src="{{ $product->display_image }}"
+                                                 alt="{{ $product->name }}"
+                                                 class="w-100 h-100"
+                                                 style="object-fit: cover; cursor: zoom-in;"
+                                                 onclick="openImageModal(this.src)">
+
+                                            @if($product->image_count > 1)
+                                                <div class="image-count-badge position-absolute top-0 end-0 m-3">
+                                                    <span class="badge bg-dark bg-opacity-75">
+                                                        <i class="bi bi-images me-1"></i>{{ $product->image_count }} Photos
+                                                    </span>
+                                                </div>
+                                            @endif
+                                        </div>
+                                    </div>
+
+                                    <!-- Image Thumbnails -->
+                                    @if($product->image_count > 1)
+                                        <div class="image-thumbnails">
+                                            <div class="row g-2">
+                                                @foreach($product->image_urls as $index => $imageUrl)
+                                                    <div class="col-auto">
+                                                        <div class="thumbnail-container">
+                                                            <img src="{{ $imageUrl }}"
+                                                                 alt="{{ $product->name }} - Image {{ $index + 1 }}"
+                                                                 class="img-thumbnail thumbnail-image {{ $index === 0 ? 'active' : '' }}"
+                                                                 style="width: 80px; height: 80px; object-fit: cover; cursor: pointer;"
+                                                                 onclick="changeMainImage('{{ $imageUrl }}', this)">
+                                                        </div>
+                                                    </div>
+                                                @endforeach
+                                            </div>
+                                        </div>
+                                    @endif
                                 </div>
-                            </div>
+                            @else
+                                <!-- Placeholder when no images -->
+                                <div class="product-image-main bg-light rounded-3 d-flex align-items-center justify-content-center" style="height: 400px;">
+                                    <div class="text-center">
+                                        <i class="bi bi-image display-1 text-muted mb-3"></i>
+                                        <p class="text-muted">No Image Available</p>
+                                        <small class="text-muted">{{ $product->name }}</small>
+                                    </div>
+                                </div>
+                            @endif
                         </div>
 
                         <!-- Product Details Grid -->
@@ -367,7 +456,42 @@
     </div>
 </div>
 
+<!-- Image Modal -->
+<div class="modal fade" id="imageModal" tabindex="-1" aria-labelledby="imageModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="imageModalLabel">{{ $product->name }}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-0">
+                <img id="modalImage" src="" alt="{{ $product->name }}" class="w-100">
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
+// Image gallery functionality
+function changeMainImage(imageUrl, thumbnailElement) {
+    const mainImage = document.getElementById('mainProductImage');
+    mainImage.src = imageUrl;
+
+    // Update active thumbnail
+    document.querySelectorAll('.thumbnail-image').forEach(thumb => {
+        thumb.classList.remove('active');
+    });
+    thumbnailElement.classList.add('active');
+}
+
+function openImageModal(imageUrl) {
+    const modalImage = document.getElementById('modalImage');
+    modalImage.src = imageUrl;
+
+    const imageModal = new bootstrap.Modal(document.getElementById('imageModal'));
+    imageModal.show();
+}
+
 document.addEventListener('DOMContentLoaded', function() {
     // Initialize tooltips
     var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
