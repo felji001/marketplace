@@ -54,9 +54,16 @@ Route::middleware('auth')->group(function () {
     Route::put('/profile/password', [ProfileController::class, 'updatePassword'])->name('profile.password.update');
 
     // Admin routes (requires admin role)
-    Route::prefix('admin')->name('admin.')->group(function () {
+    Route::prefix('admin')->name('admin.')->middleware('role:admin')->group(function () {
         Route::get('/dashboard', [AdminController::class, 'dashboard'])->name('dashboard');
         Route::get('/users', [AdminController::class, 'users'])->name('users');
+        Route::get('/users/create', [AdminController::class, 'createUser'])->name('users.create');
+        Route::post('/users', [AdminController::class, 'storeUser'])->name('users.store');
+        Route::get('/users/{user}/edit', [AdminController::class, 'editUser'])->name('users.edit');
+        Route::put('/users/{user}', [AdminController::class, 'updateUser'])->name('users.update');
+        Route::patch('/users/{user}/toggle-status', [AdminController::class, 'toggleUserStatus'])->name('users.toggle-status');
+        Route::delete('/users/{user}', [AdminController::class, 'deleteUser'])->name('users.delete');
+        Route::post('/users/bulk-action', [AdminController::class, 'bulkAction'])->name('users.bulk-action');
         Route::get('/settings', [AdminController::class, 'settings'])->name('settings');
     });
 });

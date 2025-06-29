@@ -312,9 +312,6 @@
                         <a href="{{ route('catalog.index') }}" class="btn btn-outline-info">
                             <i class="bi bi-shop me-2"></i>View Marketplace
                         </a>
-                        <a href="{{ route('admin.settings') }}" class="btn btn-outline-secondary">
-                            <i class="bi bi-gear me-2"></i>System Settings
-                        </a>
                     </div>
                 </div>
             </div>

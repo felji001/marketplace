@@ -84,8 +84,8 @@
 
     <!-- Enhanced Dashboard Cards with Modern Design -->
     <div class="row g-4 dashboard-cards-container">
-        @if(Auth::user()->hasRole('admin'))
-            <!-- Admin Dashboard Cards -->
+        @if(Auth::user()->hasRole('admin') && !Auth::user()->hasAnyRole(['producer', 'buyer']))
+            <!-- Admin-Only Dashboard Cards -->
             <div class="col-lg-4 col-md-6">
                 <div class="card modern-dashboard-card h-100 border-0 shadow-lg"
                      style="background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);">
@@ -141,7 +141,7 @@
 
                         <div class="mt-auto">
                             <a href="{{ route('admin.users') }}" class="btn btn-white btn-lg px-4 py-3 rounded-pill shadow-sm hover-lift">
-                                <i class="bi bi-gear me-2"></i> Manage Users
+                                <i class="bi bi-people me-2"></i> Manage Users
                             </a>
                         </div>
                     </div>
@@ -150,16 +150,16 @@
 
             <div class="col-lg-4 col-md-6">
                 <div class="card modern-dashboard-card h-100 border-0 shadow-lg"
-                     style="background: linear-gradient(135deg, #fd7e14 0%, #e55a00 100%);">
+                     style="background: linear-gradient(135deg, #28a745 0%, #20c997 100%);">
 
                     <div class="card-body text-center p-5">
                         <div class="dashboard-icon mb-4 fade-in-scale" style="animation-delay: 0.2s;">
-                            <i class="bi bi-gear display-3 text-white"></i>
+                            <i class="bi bi-tags display-3 text-white"></i>
                         </div>
-                        <h5 class="card-title fw-bold text-white mb-3">System Settings</h5>
-                        <p class="card-text text-white opacity-90 mb-4">Configure system settings and preferences</p>
+                        <h5 class="card-title fw-bold text-white mb-3">Category Management</h5>
+                        <p class="card-text text-white opacity-90 mb-4">Organize and manage product categories</p>
 
-                        <!-- Settings Info -->
+                        <!-- Category Stats -->
                         <div class="quick-stat bg-dark bg-opacity-25 rounded-3 p-3 mb-4">
                             <div class="text-center">
                                 <div class="stat-number text-white fw-bold fs-4">{{ \App\Models\Category::count() }}</div>
@@ -168,8 +168,8 @@
                         </div>
 
                         <div class="mt-auto">
-                            <a href="{{ route('admin.settings') }}" class="btn btn-white btn-lg px-4 py-3 rounded-pill shadow-sm hover-lift">
-                                <i class="bi bi-sliders me-2"></i> Settings
+                            <a href="{{ route('categories.index') }}" class="btn btn-white btn-lg px-4 py-3 rounded-pill shadow-sm hover-lift">
+                                <i class="bi bi-tags me-2"></i> Manage Categories
                             </a>
                         </div>
                     </div>

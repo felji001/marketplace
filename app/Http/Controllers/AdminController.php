@@ -7,7 +7,11 @@ use App\Models\User;
 use App\Models\Product;
 use App\Models\Category;
 use App\Models\Order;
+use App\Models\Role;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\Rule;
 
 class AdminController extends Controller
 {
@@ -65,10 +69,235 @@ class AdminController extends Controller
     /**
      * Show user management page.
      */
-    public function users()
+    public function users(Request $request)
     {
-        $users = User::with('roles')->paginate(20);
-        return view('admin.users.index', compact('users'));
+        $query = User::with('roles');
+
+        // Search functionality
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                $q->where('name', 'LIKE', "%{$search}%")
+                  ->orWhere('email', 'LIKE', "%{$search}%");
+            });
+        }
+
+        // Filter by role
+        if ($request->filled('role')) {
+            $query->whereHas('roles', function($q) use ($request) {
+                $q->where('name', $request->role);
+            });
+        }
+
+        // Filter by status
+        if ($request->filled('status')) {
+            if ($request->status === 'active') {
+                $query->whereNotNull('email_verified_at');
+            } elseif ($request->status === 'inactive') {
+                $query->whereNull('email_verified_at');
+            }
+        }
+
+        $users = $query->orderBy('created_at', 'desc')->paginate(20);
+        $roles = Role::all();
+
+        return view('admin.users.index', compact('users', 'roles'));
+    }
+
+    /**
+     * Show create user form.
+     */
+    public function createUser()
+    {
+        $roles = Role::all();
+        return view('admin.users.create', compact('roles'));
+    }
+
+    /**
+     * Store a new user.
+     */
+    public function storeUser(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'name' => 'required|string|max:255',
+            'email' => 'required|string|email|max:255|unique:users',
+            'password' => 'required|string|min:8|confirmed',
+            'whatsapp_number' => 'nullable|string|max:20',
+            'roles' => 'required|array|min:1',
+            'roles.*' => 'exists:roles,id',
+            'email_verified' => 'boolean'
+        ]);
+
+        if ($validator->fails()) {
+            return back()->withErrors($validator)->withInput();
+        }
+
+        $user = User::create([
+            'name' => $request->name,
+            'email' => $request->email,
+            'password' => Hash::make($request->password),
+            'whatsapp_number' => $request->whatsapp_number,
+            'email_verified_at' => $request->email_verified ? now() : null,
+        ]);
+
+        $user->roles()->attach($request->roles);
+
+        return redirect()->route('admin.users')
+            ->with('success', 'User created successfully.');
+    }
+
+    /**
+     * Show edit user form.
+     */
+    public function editUser(User $user)
+    {
+        $roles = Role::all();
+        return view('admin.users.edit', compact('user', 'roles'));
+    }
+
+    /**
+     * Update user.
+     */
+    public function updateUser(Request $request, User $user)
+    {
+        $validator = Validator::make($request->all(), [
+            'name' => 'required|string|max:255',
+            'email' => ['required', 'string', 'email', 'max:255', Rule::unique('users')->ignore($user->id)],
+            'password' => 'nullable|string|min:8|confirmed',
+            'whatsapp_number' => 'nullable|string|max:20',
+            'roles' => 'required|array|min:1',
+            'roles.*' => 'exists:roles,id',
+            'email_verified' => 'boolean'
+        ]);
+
+        if ($validator->fails()) {
+            return back()->withErrors($validator)->withInput();
+        }
+
+        $updateData = [
+            'name' => $request->name,
+            'email' => $request->email,
+            'whatsapp_number' => $request->whatsapp_number,
+            'email_verified_at' => $request->email_verified ? now() : null,
+        ];
+
+        if ($request->filled('password')) {
+            $updateData['password'] = Hash::make($request->password);
+        }
+
+        $user->update($updateData);
+        $user->roles()->sync($request->roles);
+
+        return redirect()->route('admin.users')
+            ->with('success', 'User updated successfully.');
+    }
+
+    /**
+     * Toggle user status (activate/deactivate).
+     */
+    public function toggleUserStatus(User $user)
+    {
+        $user->update([
+            'email_verified_at' => $user->email_verified_at ? null : now()
+        ]);
+
+        $status = $user->email_verified_at ? 'activated' : 'deactivated';
+        return back()->with('success', "User {$status} successfully.");
+    }
+
+    /**
+     * Delete user.
+     */
+    public function deleteUser(User $user)
+    {
+        // Prevent deleting the current admin user
+        if ($user->id === auth()->id()) {
+            return back()->withErrors(['error' => 'You cannot delete your own account.']);
+        }
+
+        // Check if user has orders or products
+        $hasOrders = $user->orders()->count() > 0;
+        $hasProducts = $user->products()->count() > 0;
+
+        if ($hasOrders || $hasProducts) {
+            return back()->withErrors(['error' => 'Cannot delete user with existing orders or products.']);
+        }
+
+        $user->delete();
+        return back()->with('success', 'User deleted successfully.');
+    }
+
+    /**
+     * Bulk actions for users.
+     */
+    public function bulkAction(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'action' => 'required|in:activate,deactivate,delete,assign_role,remove_role',
+            'users' => 'required|array|min:1',
+            'users.*' => 'exists:users,id',
+            'role_id' => 'required_if:action,assign_role,remove_role|exists:roles,id'
+        ]);
+
+        if ($validator->fails()) {
+            return back()->withErrors($validator);
+        }
+
+        $users = User::whereIn('id', $request->users)->get();
+        $currentUserId = auth()->id();
+
+        switch ($request->action) {
+            case 'activate':
+                $users->each(function($user) {
+                    $user->update(['email_verified_at' => now()]);
+                });
+                $message = 'Users activated successfully.';
+                break;
+
+            case 'deactivate':
+                $users->each(function($user) use ($currentUserId) {
+                    if ($user->id !== $currentUserId) {
+                        $user->update(['email_verified_at' => null]);
+                    }
+                });
+                $message = 'Users deactivated successfully.';
+                break;
+
+            case 'delete':
+                $deletedCount = 0;
+                foreach ($users as $user) {
+                    if ($user->id !== $currentUserId &&
+                        $user->orders()->count() === 0 &&
+                        $user->products()->count() === 0) {
+                        $user->delete();
+                        $deletedCount++;
+                    }
+                }
+                $message = "{$deletedCount} users deleted successfully.";
+                break;
+
+            case 'assign_role':
+                $role = Role::find($request->role_id);
+                $users->each(function($user) use ($role) {
+                    if (!$user->hasRole($role->name)) {
+                        $user->roles()->attach($role->id);
+                    }
+                });
+                $message = "Role '{$role->name}' assigned to selected users.";
+                break;
+
+            case 'remove_role':
+                $role = Role::find($request->role_id);
+                $users->each(function($user) use ($role) {
+                    if ($user->roles()->count() > 1) { // Ensure user has at least one role
+                        $user->roles()->detach($role->id);
+                    }
+                });
+                $message = "Role '{$role->name}' removed from selected users.";
+                break;
+        }
+
+        return back()->with('success', $message);
     }
 
     /**
